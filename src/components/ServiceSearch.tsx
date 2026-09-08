@@ -1,27 +1,39 @@
 import { useMemo, useState } from 'react';
-import { PRICE_CATALOG } from '../data/priceCatalog';
-import type { PriceItem } from '../types';
+import { DIAGNOSIS_PRICE_CATALOG } from '../data/diagnosisPriceCatalog';
 import { normalizeText } from '../lib/helpers';
+
+type CatalogItem = {
+  descricao: string;
+  preco: string;
+  unid: string;
+  precoUnit: number;
+};
 
 type Props = {
   value: string;
-  onSelect: (item: PriceItem) => void;
+  onSelect: (item: CatalogItem) => void;
   onQueryChange: (text: string) => void;
 };
 
-// Esta é a lista pesquisável solicitada: qualquer trecho digitado é procurado em toda a descrição.
-// Ex.: digitando "rocha" aparecem todos os serviços que contêm essa palavra, mesmo no meio do texto.
+// Lista pesquisável vinculada ao mesmo Catálogo de Preços utilizado
+// no bloco "Orçamento da solução proposta" do relatório de Diagnóstico.
+// A pesquisa considera qualquer trecho digitado dentro da descrição.
 export function ServiceSearch({ value, onSelect, onQueryChange }: Props) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
 
   const results = useMemo(() => {
     const q = normalizeText(query.trim());
-    const rows = q ? PRICE_CATALOG.filter((x) => normalizeText(x.descricao).includes(q)) : PRICE_CATALOG;
+    const rows = q
+      ? DIAGNOSIS_PRICE_CATALOG.filter((item) =>
+          normalizeText(item.descricao).includes(q)
+        )
+      : DIAGNOSIS_PRICE_CATALOG;
+
     return rows.slice(0, 50);
   }, [query]);
 
-  const choose = (item: PriceItem) => {
+  const choose = (item: CatalogItem) => {
     setQuery(item.descricao);
     setOpen(false);
     onSelect(item);
@@ -36,22 +48,46 @@ export function ServiceSearch({ value, onSelect, onQueryChange }: Props) {
         onFocus={() => setOpen(true)}
         onChange={(e) => {
           const text = e.target.value;
+
           setQuery(text);
           setOpen(true);
-          // Enquanto o usuário pesquisa, limpamos os campos automáticos no componente pai.
-          // Eles só voltam a ser preenchidos quando uma opção real do catálogo for escolhida.
+
+          // Enquanto o usuário pesquisa, os campos vinculados ficam vazios.
+          // Nº do Preço, Unid. e Preço Unit. somente são preenchidos quando
+          // uma descrição real do Catálogo de Preços é selecionada.
           onQueryChange(text);
         }}
-        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        onBlur={() =>
+          window.setTimeout(() => setOpen(false), 150)
+        }
       />
+
       {open && (
         <div className="service-menu">
-          {results.length ? results.map((item) => (
-            <button type="button" key={`${item.descricao}-${item.preco}`} onMouseDown={(e) => e.preventDefault()} onClick={() => choose(item)}>
-              <strong>{item.descricao}</strong>
-              <small>Preço {item.preco} · {item.unid} · {item.precoUnit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</small>
-            </button>
-          )) : <div className="service-empty">Nenhum serviço encontrado.</div>}
+          {results.length ? (
+            results.map((item) => (
+              <button
+                type="button"
+                key={`${item.descricao}-${item.preco}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => choose(item)}
+              >
+                <strong>{item.descricao}</strong>
+
+                <small>
+                  Preço {item.preco} · {item.unid} ·{' '}
+                  {item.precoUnit.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </small>
+              </button>
+            ))
+          ) : (
+            <div className="service-empty">
+              Nenhum serviço encontrado.
+            </div>
+          )}
         </div>
       )}
     </div>
