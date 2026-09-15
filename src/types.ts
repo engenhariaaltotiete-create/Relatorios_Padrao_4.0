@@ -1,7 +1,7 @@
 // Tipos centrais do sistema. Eles funcionam como um "mapa" dos dados dos dois modelos de relatório.
 // O campo kind permite guardar os dois relatórios no mesmo armazenamento sem misturá-los.
 
-export type ReportKind = 'services' | 'receipt' | 'diagnosis' | 'photo';
+export type ReportKind = 'services' | 'receipt' | 'diagnosis' | 'photo' | 'checklist';
 
 export type PriceItem = {
   descricao: string;
@@ -105,7 +105,20 @@ export type ReceiptReport = {
   observacoesGerais: string;
 };
 
-export type AnyReport = Report | ReceiptReport | DiagnosisReport | PhotoReport;
+export type ChecklistStatus = 'SIM' | 'NÃO' | 'NÃO SE APLICA' | '';
+
+export type ChecklistItem = { id:string; documento:string; situacao:ChecklistStatus; orientacao:string };
+
+export type ChecklistReport = {
+  kind:'checklist'; version:number; id:string; createdAt:string; updatedAt:string; generatedAt:string|null; archivedAt:string|null;
+  responsavel:{ elaboradoPor:string; data:string; matricula:string; cargo:string; unidade:string };
+  obra:{ municipio:string; endereco:string; tipoObra:string; aguaEsgoto:string; empresaExecutora:string; contrato:string; descricaoComplementar:string };
+  checklist:ChecklistItem[];
+  observacoesGerais:string;
+  anexos:StoredFile[];
+};
+
+export type AnyReport = Report | ReceiptReport | DiagnosisReport | PhotoReport | ChecklistReport;
 
 export type WhyLine = { id:string; pergunta:string; resposta:string };
 export type BudgetLine = { id:string; descricao:string; preco:string; unid:string; quant:string; precoUnit:string };

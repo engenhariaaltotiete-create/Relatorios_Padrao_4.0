@@ -1,4 +1,5 @@
-import type { AnyReport, BudgetLine, DefectLine, DiagnosisReport, Evidence, InspectionNote, PhotoEntry, PhotoReport, ReceiptReport, Report, ServiceLine, StoredFile, WhyLine } from '../types';
+import type { AnyReport, BudgetLine, ChecklistReport, DefectLine, DiagnosisReport, Evidence, InspectionNote, PhotoEntry, PhotoReport, ReceiptReport, Report, ServiceLine, StoredFile, WhyLine } from '../types';
+import { CHECKLIST_DOCUMENTS } from '../data/options';
 
 export const uid = () => `r_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 export const today = () => new Date().toISOString().slice(0, 10);
@@ -51,6 +52,32 @@ export function newReceiptReport(): ReceiptReport {
   };
 }
 
+
+
+export function newChecklistReport(): ChecklistReport {
+  const now = new Date().toISOString();
+  return {
+    kind:'checklist', version:19, id:uid(), createdAt:now, updatedAt:now, generatedAt:null, archivedAt:null,
+    responsavel:{ elaboradoPor:'', data:today(), matricula:'', cargo:'', unidade:'' },
+    obra:{ municipio:'', endereco:'', tipoObra:'', aguaEsgoto:'', empresaExecutora:'', contrato:'', descricaoComplementar:'' },
+    checklist: CHECKLIST_DOCUMENTS.map(([documento,orientacao])=>({id:uid(),documento,situacao:'',orientacao})),
+    observacoesGerais:'', anexos:[]
+  };
+}
+
+export function normalizeChecklistReport(input:any):ChecklistReport {
+  const b=newChecklistReport();
+  const existing=Array.isArray(input?.checklist)?input.checklist:[];
+  const byDoc=new Map(existing.map((x:any)=>[normalizeText(x?.documento),x]));
+  return {
+    ...b,...input,kind:'checklist',version:19,id:input?.id||uid(),
+    responsavel:{...b.responsavel,...(input?.responsavel||{})},
+    obra:{...b.obra,...(input?.obra||{})},
+    checklist:b.checklist.map(item=>{const old=byDoc.get(normalizeText(item.documento)) as any; return old?{...item,...old,id:old?.id||item.id,documento:item.documento,orientacao:item.orientacao}:item;}),
+    observacoesGerais:input?.observacoesGerais||'',
+    anexos:Array.isArray(input?.anexos)?input.anexos.map(normalizeFile):[]
+  };
+}
 
 export function blankWhy(): WhyLine { return { id: uid(), pergunta: '', resposta: '' }; }
 export function blankBudget(): BudgetLine { return { id: uid(), descricao: '', preco: '', unid: '', quant: '', precoUnit: '' }; }
@@ -115,7 +142,7 @@ export function normalizeReceiptReport(input: Partial<ReceiptReport> | any): Rec
 }
 
 export function normalizeAnyReport(input: any): AnyReport {
-  return input?.kind === 'photo' ? normalizePhotoReport(input) : input?.kind === 'diagnosis' ? normalizeDiagnosisReport(input) : input?.kind === 'receipt' ? normalizeReceiptReport(input) : normalizeReport(input);
+  return input?.kind === 'checklist' ? normalizeChecklistReport(input) : input?.kind === 'photo' ? normalizePhotoReport(input) : input?.kind === 'diagnosis' ? normalizeDiagnosisReport(input) : input?.kind === 'receipt' ? normalizeReceiptReport(input) : normalizeReport(input);
 }
 
 function normalizeFile(f: any): StoredFile {
@@ -143,9 +170,10 @@ export function receiptFileNameBase(r: ReceiptReport, when = new Date()) {
   return `RECEBIMENTO - ${safeName(r.obra.tipoObra)} - ${safeName(r.obra.aguaEsgoto)} - ${safeName(r.obra.endereco)} - ${safeName(r.obra.municipio)} - ${date}`;
 }
 export function diagnosisFileNameBase(r: DiagnosisReport, when = new Date()) { const date=when.toLocaleDateString('pt-BR').replaceAll('/','-'); return `DIAGNOSTICO - ${safeName(r.demanda.processo)} - ${safeName(r.demanda.endereco)} - ${safeName(r.demanda.municipio)} - ${date}`; }
+export function checklistFileNameBase(r: ChecklistReport, when=new Date()){const date=when.toLocaleDateString('pt-BR').replaceAll('/','-');return `CHECKLIST LIBERACAO DE OBRA - ${safeName(r.obra.tipoObra)} - ${safeName(r.obra.endereco)} - ${safeName(r.obra.municipio)} - ${date}`;}
 export function photoFileNameBase(r: PhotoReport, when=new Date()){const date=when.toLocaleDateString('pt-BR').replaceAll('/','-');return `RELATORIO FOTOGRAFICO - ${safeName(r.caracterizacao.tipoRelatorio)} - ${safeName(r.obra.endereco)} - ${safeName(r.obra.municipio)} - ${date}`;}
 export function anyFileNameBase(r: AnyReport, when = new Date()) {
-  return r.kind === 'photo' ? photoFileNameBase(r,when) : r.kind === 'diagnosis' ? diagnosisFileNameBase(r, when) : r.kind === 'receipt' ? receiptFileNameBase(r, when) : fileNameBase(r, when);
+  return r.kind === 'checklist' ? checklistFileNameBase(r,when) : r.kind === 'photo' ? photoFileNameBase(r,when) : r.kind === 'diagnosis' ? diagnosisFileNameBase(r, when) : r.kind === 'receipt' ? receiptFileNameBase(r, when) : fileNameBase(r, when);
 }
 
 export async function fileToStored(file: File): Promise<StoredFile> {

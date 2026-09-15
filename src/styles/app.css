@@ -66,3 +66,9 @@ button:disabled{opacity:.55;cursor:wait}.secondary{background:#596b7d!important}
 .budget-description{position:relative;overflow:visible}
 .budget-description .smart-list-field:focus-within{z-index:6000}
 @media(max-width:760px){.why-row{grid-template-columns:1fr}.why-delete{width:100%}}
+
+/* CheckList de Liberação de Obra */
+.checklist-table th:nth-child(1){width:38%}.checklist-table th:nth-child(2){width:18%}.checklist-table th:nth-child(3){width:44%}
+.checklist-table select{width:100%;font:inherit;font-weight:800;border:1px solid #bfc9d4;border-radius:7px;padding:7px;background:#fff}
+.checklist-table .status-yes select{color:#166e2f}.checklist-table .status-no select{color:#b41919}.checklist-table .status-na select{color:#6e767e}
+@media(max-width:760px){.checklist-table{min-width:720px}.table-scroll{overflow-x:auto}}

@@ -37,3 +37,25 @@ export const PHOTO_OPTIONS={
   tipoRelatorio:['PRÉ-OBRA','ACOMPANHAMENTO DE OBRA','FINAL DE OBRA','OCORRÊNCIAS','SINISTRO'],
   tipoObra:['PROLONGAMENTO','REMANEJAMENTO','RENOVAÇÃO','CONSTRUÇÃO DE CAIXA','INSTALAÇÃO DE VENTOSA','INSTALAÇÃO DE VRP'],
 } as const;
+
+export const CHECKLIST_STATUS_OPTIONS = ['SIM','NÃO','NÃO SE APLICA'] as const;
+
+export const CHECKLIST_DOCUMENTS = [
+  ['Solicitação da obra / demanda','Ofício, CI, PMSB, Ouvidoria, Prefeitura etc.'],
+  ['Diagnóstico','Exigidos para as obras de melhoria do sistema'],
+  ['Projeto/Levantamento','Projeto ou levantamento contendo todas as interferências no local'],
+  ['Checklist da COMGÁS','Em obras onde existam rede da COMGÁS'],
+  ['Autorização ambiental','Quando aplicável'],
+  ['Autorização de concessionárias','DER, Transpetro, MRS, etc...'],
+  ['Autorização da secretaria de obras','Exigido somente no município de Suzano'],
+  ['Autorização da secretaria de Trânsito','Exigido para todas as obras'],
+  ['Relatório fotográfico inicial','Exigido para todas as obras'],
+  ['Plano de sinalização específico','Conforme trânsito local'],
+  ['Plano de Furo aprovado pela Sabesp','Devendo conter o levantamento de interferências (NTS 0324)'],
+  ['Relatório de sondagens/cavas-testemunho','Conforme NTS 0324'],
+  ['Equipe certificada (operador/navegador/soldador)','Conforme NTS 0324'],
+  ['Certificação do navegador HDD','Conforme NTS 0324'],
+  ['Certificação do soldador PEAD','Conforme NTS 0324'],
+  ['APR','Conforme NTS 0324'],
+  ['PAE','Conforme NTS 0324'],
+] as const;
