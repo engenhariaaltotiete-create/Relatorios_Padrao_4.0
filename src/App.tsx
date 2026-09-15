@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GeneratedPdf } from './lib/pdf';
-import type { AnyReport, ChecklistReport, DiagnosisReport, PhotoReport, ReceiptReport, Report } from './types';
+import type { AnyReport, ChecklistReport, FinalWorkReport, DiagnosisReport, PhotoReport, ReceiptReport, Report } from './types';
 import { Dashboard } from './components/Dashboard';
 import { Editor } from './components/Editor';
 import { Portal } from './components/Portal';
@@ -12,17 +12,20 @@ import { PhotoDashboard } from './components/PhotoDashboard';
 import { PhotoEditor } from './components/PhotoEditor';
 import { ChecklistDashboard } from './components/ChecklistDashboard';
 import { ChecklistEditor } from './components/ChecklistEditor';
+import { FinalWorkDashboard } from './components/FinalWorkDashboard';
+import { FinalWorkEditor } from './components/FinalWorkEditor';
 import { reportStorage } from './lib/storage';
-import { anyFileNameBase, newChecklistReport, newDiagnosisReport, newPhotoReport, newReceiptReport, newReport, normalizeAnyReport, normalizeChecklistReport, normalizeDiagnosisReport, normalizePhotoReport, normalizeReceiptReport, normalizeReport } from './lib/helpers';
+import { anyFileNameBase, newChecklistReport, newFinalWorkReport, newDiagnosisReport, newPhotoReport, newReceiptReport, newReport, normalizeAnyReport, normalizeChecklistReport, normalizeFinalWorkReport, normalizeDiagnosisReport, normalizePhotoReport, normalizeReceiptReport, normalizeReport } from './lib/helpers';
 import { generatePdf } from './lib/pdf';
 import { generateReceiptPdf } from './lib/receiptPdf';
 import { generateDiagnosisPdf } from './lib/diagnosisPdf';
 import { generatePhotoPdf } from './lib/photoPdf';
 import { generateChecklistPdf } from './lib/checklistPdf';
+import { generateFinalWorkPdf } from './lib/finalWorkPdf';
 import logo from './assets/sabesp-logo.jpg';
 import './styles/app.css';
 
-type Screen = 'portal' | 'services-dashboard' | 'services-editor' | 'receipt-dashboard' | 'receipt-editor' | 'diagnosis-dashboard' | 'diagnosis-editor' | 'photo-dashboard' | 'photo-editor' | 'checklist-dashboard' | 'checklist-editor';
+type Screen = 'portal' | 'services-dashboard' | 'services-editor' | 'receipt-dashboard' | 'receipt-editor' | 'diagnosis-dashboard' | 'diagnosis-editor' | 'photo-dashboard' | 'photo-editor' | 'checklist-dashboard' | 'checklist-editor' | 'final-work-dashboard' | 'final-work-editor';
 type PdfResult = GeneratedPdf;
 
 function validateServices(report: Report): string[] {
@@ -54,6 +57,15 @@ function validateChecklist(r:ChecklistReport):string[]{
   return e;
 }
 
+function validateFinalWork(r:FinalWorkReport):string[]{
+  const e:string[]=[]; const req=(v:unknown,l:string)=>{if(!String(v??'').trim())e.push(l)};
+  req(r.responsavel.elaboradoPor,'Elaborado por');req(r.responsavel.data,'Data');req(r.responsavel.matricula,'Matrícula');req(r.responsavel.cargo,'Cargo/Função');req(r.responsavel.unidade,'Unidade');
+  req(r.obra.municipio,'Município');req(r.obra.endereco,'Endereço');req(r.obra.tipoObra,'Tipo de Serviço');req(r.obra.aguaEsgoto,'Água/Esgoto');req(r.obra.empresaExecutora,'Empresa Executora');req(r.obra.contrato,'Contrato');
+  r.checklist.forEach((item,i)=>req(item.situacao,`Situação do item ${i+1} - ${item.documento}`));
+  r.anexos.forEach((a,i)=>{req(a.titulo,`Título do anexo ${i+1}`);req(a.descricao,`Descrição do anexo ${i+1}`)});
+  return e;
+}
+
 function downloadBlob(blob:Blob,fileName:string){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 
 export default function App(){
@@ -74,12 +86,12 @@ export default function App(){
   },[]);
   useEffect(()=>{if(!current||!screen.endsWith('editor'))return;if(saveTimer.current)window.clearTimeout(saveTimer.current);saveTimer.current=window.setTimeout(()=>{void reportStorage.put(current).then(()=>setMessage('Salvo automaticamente'));},700);return()=>{if(saveTimer.current)window.clearTimeout(saveTimer.current)};},[current,screen]);
 
-  const openReport=async(id:string)=>{const found=await reportStorage.get(id);if(!found)return setMessage('Relatório não encontrado.');const normalized=normalizeAnyReport(found);setCurrent(normalized);setScreen(normalized.kind==='checklist'?'checklist-editor':normalized.kind==='photo'?'photo-editor':normalized.kind==='diagnosis'?'diagnosis-editor':normalized.kind==='receipt'?'receipt-editor':'services-editor');};
-  const saveAndBack=async()=>{if(current)await reportStorage.put(current);await refresh();setScreen(current?.kind==='checklist'?'checklist-dashboard':current?.kind==='photo'?'photo-dashboard':current?.kind==='diagnosis'?'diagnosis-dashboard':current?.kind==='receipt'?'receipt-dashboard':'services-dashboard');};
+  const openReport=async(id:string)=>{const found=await reportStorage.get(id);if(!found)return setMessage('Relatório não encontrado.');const normalized=normalizeAnyReport(found);setCurrent(normalized);setScreen(normalized.kind==='final-work'?'final-work-editor':normalized.kind==='checklist'?'checklist-editor':normalized.kind==='photo'?'photo-editor':normalized.kind==='diagnosis'?'diagnosis-editor':normalized.kind==='receipt'?'receipt-editor':'services-editor');};
+  const saveAndBack=async()=>{if(current)await reportStorage.put(current);await refresh();setScreen(current?.kind==='final-work'?'final-work-dashboard':current?.kind==='checklist'?'checklist-dashboard':current?.kind==='photo'?'photo-dashboard':current?.kind==='diagnosis'?'diagnosis-dashboard':current?.kind==='receipt'?'receipt-dashboard':'services-dashboard');};
   const exportJson=(r:AnyReport)=>{const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json;charset=utf-8'});downloadBlob(blob,`${anyFileNameBase(r)}.json`);};
-  const importJson=async(file:File,target:'services'|'receipt'|'diagnosis'|'photo'|'checklist')=>{try{const parsed=JSON.parse(await file.text());const r=normalizeAnyReport(parsed);if(r.kind!==target){setMessage(`Este JSON pertence ao módulo de ${r.kind==='receipt'?'Recebimento de Obras':'Serviços Não Vinculados'}.`);return;}await reportStorage.put(r);await refresh();setMessage('JSON importado com sucesso.');}catch(err){console.error(err);setMessage('O arquivo JSON não pôde ser importado.');}};
+  const importJson=async(file:File,target:'services'|'receipt'|'diagnosis'|'photo'|'checklist'|'final-work')=>{try{const parsed=JSON.parse(await file.text());const r=normalizeAnyReport(parsed);if(r.kind!==target){setMessage(`Este JSON pertence ao módulo de ${r.kind==='receipt'?'Recebimento de Obras':'Serviços Não Vinculados'}.`);return;}await reportStorage.put(r);await refresh();setMessage('JSON importado com sucesso.');}catch(err){console.error(err);setMessage('O arquivo JSON não pôde ser importado.');}};
 
-  const generate=async(r:AnyReport)=>{const errors=r.kind==='checklist'?validateChecklist(r):r.kind==='photo'?validatePhoto(r):r.kind==='diagnosis'?validateDiagnosis(r):r.kind==='receipt'?validateReceipt(r):validateServices(r);if(errors.length){setMessage(`Preencha os campos obrigatórios: ${errors.slice(0,4).join(', ')}${errors.length>4?'...':''}`);return;}setBusyPdf(true);setMessage('Gerando PDF diretamente no dispositivo...');try{const stamped={...r,generatedAt:new Date().toISOString()} as AnyReport;await reportStorage.put(stamped);if(current?.id===stamped.id)setCurrent(stamped);const result=stamped.kind==='checklist'?await generateChecklistPdf(stamped):stamped.kind==='photo'?await generatePhotoPdf(stamped):stamped.kind==='diagnosis'?await generateDiagnosisPdf(stamped):stamped.kind==='receipt'?await generateReceiptPdf(stamped):await generatePdf(stamped);setPdfResult(old=>{if(old)URL.revokeObjectURL(old.url);return result;});setMessage('PDF gerado. Use Baixar ou Compartilhar.');await refresh();}catch(err){console.error('Erro detalhado ao gerar PDF:',err);setMessage('Não foi possível gerar o PDF. Veja o console do navegador para o erro técnico.');}finally{setBusyPdf(false);}};
+  const generate=async(r:AnyReport)=>{const errors=r.kind==='final-work'?validateFinalWork(r):r.kind==='checklist'?validateChecklist(r):r.kind==='photo'?validatePhoto(r):r.kind==='diagnosis'?validateDiagnosis(r):r.kind==='receipt'?validateReceipt(r):validateServices(r);if(errors.length){setMessage(`Preencha os campos obrigatórios: ${errors.slice(0,4).join(', ')}${errors.length>4?'...':''}`);return;}setBusyPdf(true);setMessage('Gerando PDF diretamente no dispositivo...');try{const stamped={...r,generatedAt:new Date().toISOString()} as AnyReport;await reportStorage.put(stamped);if(current?.id===stamped.id)setCurrent(stamped);const result=stamped.kind==='final-work'?await generateFinalWorkPdf(stamped):stamped.kind==='checklist'?await generateChecklistPdf(stamped):stamped.kind==='photo'?await generatePhotoPdf(stamped):stamped.kind==='diagnosis'?await generateDiagnosisPdf(stamped):stamped.kind==='receipt'?await generateReceiptPdf(stamped):await generatePdf(stamped);setPdfResult(old=>{if(old)URL.revokeObjectURL(old.url);return result;});setMessage('PDF gerado. Use Baixar ou Compartilhar.');await refresh();}catch(err){console.error('Erro detalhado ao gerar PDF:',err);setMessage('Não foi possível gerar o PDF. Veja o console do navegador para o erro técnico.');}finally{setBusyPdf(false);}};
   const sharePdf=async()=>{if(!pdfResult)return;try{const f=new File([pdfResult.blob],pdfResult.fileName,{type:'application/pdf'});if(navigator.canShare?.({files:[f]}))await navigator.share({files:[f],title:pdfResult.fileName});else downloadBlob(pdfResult.blob,pdfResult.fileName);}catch(err){console.warn('Compartilhamento cancelado/indisponível',err)}};
   const archive=async(id:string,value:boolean)=>{const r=await reportStorage.get(id);if(!r)return;r.archivedAt=value?new Date().toISOString():null;await reportStorage.put(r);await refresh();};
   const remove=async(id:string)=>{if(window.confirm('Excluir este relatório do armazenamento local?')){await reportStorage.remove(id);await refresh();}};
@@ -89,20 +101,23 @@ export default function App(){
   const diagnosisReports=reports.filter((r):r is DiagnosisReport=>r.kind==='diagnosis');
   const photoReports=reports.filter((r):r is PhotoReport=>r.kind==='photo');
   const checklistReports=reports.filter((r):r is ChecklistReport=>r.kind==='checklist');
-  const headerTitle=screen.startsWith('checklist')?'CheckLists de Liberação de Obra':screen.startsWith('photo')?'Relatórios Fotográficos':screen.startsWith('diagnosis')?'Diagnóstico e Solução de Problemas Operacionais':screen.startsWith('receipt')?'Relatórios de Recebimento de Obras':screen.startsWith('services')?'Relatórios de Serviços Não Vinculados':'Relatórios Padrão';
+  const finalWorkReports=reports.filter((r):r is FinalWorkReport=>r.kind==='final-work');
+  const headerTitle=screen.startsWith('final-work')?'Relatórios Finais de Obra':screen.startsWith('checklist')?'CheckLists de Liberação de Obra':screen.startsWith('photo')?'Relatórios Fotográficos':screen.startsWith('diagnosis')?'Diagnóstico e Solução de Problemas Operacionais':screen.startsWith('receipt')?'Relatórios de Recebimento de Obras':screen.startsWith('services')?'Relatórios de Serviços Não Vinculados':'Relatórios Padrão';
 
   return <div className="app-shell">
     <header className="app-header"><div className="header-inner"><div className="brand"><img src={logo} alt="Logo"/><div><h1>{headerTitle}</h1><small>Controle local de relatórios</small></div></div><div className="storage-status">{message}</div></div></header>
 
-    {screen==='portal'&&<Portal onServices={()=>setScreen('services-dashboard')} onReceipt={()=>setScreen('receipt-dashboard')} onDiagnosis={()=>setScreen('diagnosis-dashboard')} onPhoto={()=>setScreen('photo-dashboard')} onChecklist={()=>setScreen('checklist-dashboard')}/>} 
+    {screen==='portal'&&<Portal onServices={()=>setScreen('services-dashboard')} onReceipt={()=>setScreen('receipt-dashboard')} onDiagnosis={()=>setScreen('diagnosis-dashboard')} onPhoto={()=>setScreen('photo-dashboard')} onChecklist={()=>setScreen('checklist-dashboard')} onFinalWork={()=>setScreen('final-work-dashboard')}/>} 
     {screen==='services-dashboard'&&<Dashboard reports={serviceReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newReport());setScreen('services-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=serviceReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=serviceReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'services')}/>} 
     {screen==='receipt-dashboard'&&<ReceiptDashboard reports={receiptReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newReceiptReport());setScreen('receipt-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=receiptReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=receiptReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'receipt')}/>} 
     {screen==='diagnosis-dashboard'&&<DiagnosisDashboard reports={diagnosisReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newDiagnosisReport());setScreen('diagnosis-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=diagnosisReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=diagnosisReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'diagnosis')}/>} 
     {screen==='photo-dashboard'&&<PhotoDashboard reports={photoReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newPhotoReport());setScreen('photo-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=photoReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=photoReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'photo')}/>}
+    {screen==='final-work-dashboard'&&<FinalWorkDashboard reports={finalWorkReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newFinalWorkReport());setScreen('final-work-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=finalWorkReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=finalWorkReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'final-work')}/>}
     {screen==='checklist-dashboard'&&<ChecklistDashboard reports={checklistReports} onBack={()=>setScreen('portal')} onNew={()=>{setCurrent(newChecklistReport());setScreen('checklist-editor')}} onOpen={id=>void openReport(id)} onArchive={(id,a)=>void archive(id,a)} onDelete={id=>void remove(id)} onExport={id=>{const r=checklistReports.find(x=>x.id===id);if(r)exportJson(r)}} onPdf={id=>{const r=checklistReports.find(x=>x.id===id);if(r)void generate(r)}} onImport={f=>void importJson(f,'checklist')}/>}
     {screen==='services-editor'&&current?.kind==='services'&&<Editor report={normalizeReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>} 
     {screen==='receipt-editor'&&current?.kind==='receipt'&&<ReceiptEditor report={normalizeReceiptReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>}    {screen==='diagnosis-editor'&&current?.kind==='diagnosis'&&<DiagnosisEditor report={normalizeDiagnosisReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>} 
     {screen==='photo-editor'&&current?.kind==='photo'&&<PhotoEditor report={normalizePhotoReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>}
+    {screen==='final-work-editor'&&current?.kind==='final-work'&&<FinalWorkEditor report={normalizeFinalWorkReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>}
     {screen==='checklist-editor'&&current?.kind==='checklist'&&<ChecklistEditor report={normalizeChecklistReport(current)} onChange={setCurrent} onSaveBack={()=>void saveAndBack()} onPdf={()=>void generate(current)} onExport={()=>exportJson(current)} busy={busyPdf}/>}
  
 

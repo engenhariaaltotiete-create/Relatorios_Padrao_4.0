@@ -59,3 +59,15 @@ export const CHECKLIST_DOCUMENTS = [
   ['APR','Conforme NTS 0324'],
   ['PAE','Conforme NTS 0324'],
 ] as const;
+
+
+export const FINAL_WORK_DOCUMENTS = [
+  ['Checklist de liberação de obra','Exigido para início de todas as obras'],
+  ['Relatórios de fiscalização','Controle da contratada contendo todas as etapas'],
+  ['Teste de estanqueidade','Somente para as obras de água'],
+  ['Relatório de serviços não vinculados','Quando houver serviços não vinculados'],
+  ['Relatório de Poços de Visita','Em obras que tenham PVs ou caixas deverá haver o relatório'],
+  ['Registro de execução do furo','Obrigatório em obras em HDD, devendo conter: profundidade por haste, pitch (ângulo) por haste, sequência de alargamento e controle da carga de puxamento.'],
+  ['Registro da utilização de Fuse Link ou dispositivo equivalente','Obrigatório em obras em HDD'],
+  ['Relatório de ocorrências e desvios','Obrigatório em obras em HDD'],
+] as const;
