@@ -1,5 +1,114 @@
 export const DIAGNOSIS_PRICE_CATALOG = [
+ 
   {
+    "descricao": "PISO DE CONCRETO EM CORREDOR DE ÔNIBUS",
+    "preco": "326101",
+    "unid": "M2",
+    "precoUnit": 956.75
+  },
+  {
+    "descricao": "REBAIXAMENTO DE LENÇOL FREÁTICO POR CONJUNTO DE PONTEIRAS ATÉ 2,00 M",
+    "preco": "70050002",
+    "unid": "M",
+    "precoUnit": 420.00
+  },
+  {
+    "descricao": "REBAIXAMENTO DE LENÇOL FREÁTICO POR CONJUNTO DE PONTEIRAS ATÉ 4,00 M",
+    "preco": "70050003",
+    "unid": "M",
+    "precoUnit": 575.00
+  },
+  {
+    "descricao": "REBAIXAMENTO DE LENÇOL FREÁTICO POR CONJUNTO DE PONTEIRAS ATÉ 6,00 M",
+    "preco": "70050004",
+    "unid": "M",
+    "precoUnit": 865.00
+  },
+  {
+    "descricao": "MOBILIZAÇÃO DE EQUIPE E EQUIPAMENTOS PARA REBAIXAMENTO DE PONTEIRAS FILTRANTES",
+    "preco": "70050005",
+    "unid": "UND",
+    "precoUnit": 12672.00
+  },
+  {
+    "descricao": "AD SEG LIN REB L FREAT CJ PONT ATE 2,00M",
+    "preco": "70050021",
+    "unid": "M",
+    "precoUnit": 341.00
+  },
+  {
+    "descricao": "AD SEG LIN REB L FREAT CJ PONT ATE 4,00M",
+    "preco": "70050022",
+    "unid": "M",
+    "precoUnit": 427.00
+  },
+  {
+    "descricao": "AD SEG LIN REB L FREAT CJ PONT ATE 6,00M",
+    "preco": "70050023",
+    "unid": "M",
+    "precoUnit": 567.00
+  },
+  {
+    "descricao": "INST PONT FILTR P/ REBAIX LENÇOL FREÁT",
+    "preco": "70050031",
+    "unid": "UNID",
+    "precoUnit": 756.00
+  },
+  {
+    "descricao": "INST/OPER/MAN SIST REBAIX C/ PONT FILTR",
+    "preco": "70050032",
+    "unid": "CONJ",
+    "precoUnit": 1800.00
+  },
+  {
+    "descricao": "ESGOTAMENTO COM BOMBAS DE SUPERFÍCIE OU SUBMERSAS",
+    "preco": "70050001",
+    "unid": "HPH",
+    "precoUnit": 3.65
+  },
+  {
+    "descricao": "PV D=1,00M MATERIAL PLASTICO ATE 2,00M",
+    "preco": "70070187",
+    "unid": "UN",
+    "precoUnit": 7978.00
+  },
+  {
+    "descricao": "PV D=1,00M MATERIAL PLASTICO ATE 2,50M",
+    "preco": "70070188",
+    "unid": "UN",
+    "precoUnit": 8868.00
+  },
+  {
+    "descricao": "PV D=1,00M MATERIAL PLASTICO ATE 3,00M",
+    "preco": "70070189",
+    "unid": "UN",
+    "precoUnit": 13869.00
+  },
+  {
+    "descricao": "PV D=1,00M MATERIAL PLASTICO ATE 3,50M",
+    "preco": "70070190",
+    "unid": "UN",
+    "precoUnit": 16154.00
+  },
+  {
+    "descricao": "PV D=1,00M MATERIAL PLASTICO ATE 4,00M",
+    "preco": "70070191",
+    "unid": "UN",
+    "precoUnit": 17720.00
+  },
+  {
+    "descricao": "CADASTRO DE REDES",
+    "preco": "70010005",
+    "unid": "M",
+    "precoUnit": 2.70
+  },
+  {
+    "descricao": "CADASTRO DE ADUTORAS, COLETORES-TRONCO E INTERCEPTORES (ATÉ DIÂM. 500 MM)",
+    "preco": "70010006",
+    "unid": "M",
+    "precoUnit": 6.37
+  },
+ {
     "descricao": "AD EQ AGUA PERIODO NOTURNO",
     "preco": "72000899",
     "unid": "EQD",
