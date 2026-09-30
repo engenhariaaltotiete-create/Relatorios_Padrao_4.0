@@ -1,5 +1,11 @@
 export const DIAGNOSIS_PRICE_CATALOG = [
- 
+
+ {
+"descricao": "RETIRA ENTULHO SERV. MOP",
+"preco": "72000847",
+"unid": "M3",
+"precoUnit": 250.35
+},
   {
     "descricao": "PISO DE CONCRETO EM CORREDOR DE ÔNIBUS",
     "preco": "326101",
