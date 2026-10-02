@@ -133,6 +133,10 @@ export type AnyReport = Report | ReceiptReport | DiagnosisReport | PhotoReport |
 export type WhyLine = { id:string; pergunta:string; resposta:string };
 export type BudgetLine = { id:string; descricao:string; preco:string; unid:string; quant:string; precoUnit:string };
 export type DiagnosisAttachment = StoredFile & { titulo:string };
+export type SketchPoint = { id:string; lat:number; lng:number; kind:'start'|'junction'|'end'|'vertex' };
+export type SketchAddress = { display:string; road:string; neighbourhood:string; city:string; state:string; postcode:string };
+export type SketchSegment = { id:string; name:string; startPointId:string; endPointId:string; coordinates:{lat:number;lng:number}[]; lengthMeters:number; lengthManual:boolean; address:SketchAddress };
+export type DiagnosisSketch = { points:SketchPoint[]; segments:SketchSegment[]; startPointId:string|null; totalLengthMeters:number };
 export type DiagnosisReport = {
   kind:'diagnosis'; version:number; id:string; createdAt:string; updatedAt:string; generatedAt:string|null; archivedAt:string|null;
   responsavel:{ elaboradoPor:string; data:string; matricula:string; cargo:string; unidade:string };
@@ -142,6 +146,7 @@ export type DiagnosisReport = {
   juridico:{ judiciais:string; judiciaisDetalhe:string; procon:string; proconDetalhe:string; regulatorios:string; regulatoriosDetalhe:string };
   causa:{ problema:string; porques:WhyLine[]; causaRaiz:string };
   solucao:{ tipoObra:string; extensao:string; novasEconomias:string; pngs:string; diametro:string; material:string; necessidade:string; parecer:string; orcamento:BudgetLine[] };
+  croqui:DiagnosisSketch;
   anexos:DiagnosisAttachment[];
 };
 

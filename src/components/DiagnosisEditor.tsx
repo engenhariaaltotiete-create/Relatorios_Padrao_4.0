@@ -4,6 +4,7 @@ import { DIAGNOSIS_PRICE_CATALOG as C } from '../data/diagnosisPriceCatalog';
 import { EditableListInput } from './EditableListInput';
 import { MemoryTextInput } from './MemoryTextInput';
 import { FileCards } from './FileCards';
+import { DiagnosisSketchMap } from './DiagnosisSketchMap';
 import { blankBudget, blankWhy, fileToStored, moneyBR } from '../lib/helpers';
 
 export const DIAG_OBJECTIVE = 'A presente Nota Técnica tem por objetivo avaliar tecnicamente a demanda reportada, registrar as atividades de diagnóstico realizadas e apresentar a solução técnica aplicável, subsidiando a tomada de decisão quanto à aprovação e à execução das intervenções necessárias nos sistemas de abastecimento de água e/ou esgotamento sanitário, além de constituir o registro formal das análises e dos estudos realizados até a definição da solução.';
@@ -121,6 +122,10 @@ export function DiagnosisEditor({ report: r, onChange, onSaveBack, onPdf, onExpo
       </tbody></table></div>
       <button type="button" className="ghost" onClick={() => patch({ solucao: { ...r.solucao, orcamento: [...r.solucao.orcamento, blankBudget()] } })}>+ Adicionar item</button>
       <p className="hint">* Preços do contrato Global – P0.</p>
+    </div></section>
+
+    <section className="card"><h3>CROQUI DA SOLUÇÃO PROPOSTA</h3><div className="card-body">
+      <DiagnosisSketchMap value={r.croqui} onChange={croqui => patch({ croqui })} />
     </div></section>
 
     <section className="card"><h3>Anexos</h3><div className="card-body">
