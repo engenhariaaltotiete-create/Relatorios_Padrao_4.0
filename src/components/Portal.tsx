@@ -1,6 +1,6 @@
-type Props = { onServices: () => void; onReceipt: () => void; onDiagnosis: () => void; onPhoto: () => void; onChecklist: () => void; onFinalWork: () => void; onMaintenanceAuth: () => void };
+type Props = { onServices: () => void; onReceipt: () => void; onDiagnosis: () => void; onPhoto: () => void; onChecklist: () => void; onFinalWork: () => void; onMaintenanceAuthorization: () => void };
 
-export function Portal({ onServices, onReceipt, onDiagnosis, onPhoto, onChecklist, onFinalWork, onMaintenanceAuth }: Props) {
+export function Portal({ onServices, onReceipt, onDiagnosis, onPhoto, onChecklist, onFinalWork, onMaintenanceAuthorization }: Props) {
   return (
     <main className="container portal">
       <div className="page-heading"><div><h2>Relatórios Padrão</h2><p>Selecione o modelo de relatório que deseja utilizar.</p></div></div>
@@ -17,7 +17,7 @@ export function Portal({ onServices, onReceipt, onDiagnosis, onPhoto, onChecklis
       <button className="portal-card" onClick={onPhoto}><strong>Relatório Fotográfico</strong><span>Registro fotográfico de pré-obra, acompanhamento, final de obra e ocorrências, com anexos.</span></button>
       <button className="portal-card" onClick={onChecklist}><strong>CheckList de Liberação de Obra</strong><span>Verificação documental para liberação de obras, observações gerais e anexos.</span></button>
       <button className="portal-card" onClick={onFinalWork}><strong>Relatório Final de Obra</strong><span>Verificação documental de encerramento da obra, observações gerais e anexos.</span></button>
-      <button className="portal-card" onClick={onMaintenanceAuth}><strong>Relatório Fotográfico Manutenção – Autorização</strong><span>Solicitação de autorização para manutenção emergencial com registro fotográfico.</span></button>
+      <button className="portal-card" onClick={onMaintenanceAuthorization}><strong>Relatório Fotográfico Manutenção – Autorização</strong><span>Solicitação de autorização com registro fotográfico independente.</span></button>
       </div>
     </main>
   );
