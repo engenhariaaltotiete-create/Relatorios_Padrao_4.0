@@ -1,7 +1,7 @@
 // Tipos centrais do sistema. Eles funcionam como um "mapa" dos dados dos dois modelos de relatório.
 // O campo kind permite guardar os dois relatórios no mesmo armazenamento sem misturá-los.
 
-export type ReportKind = 'services' | 'receipt' | 'diagnosis' | 'photo' | 'checklist' | 'final-work' | 'maintenance-auth';
+export type ReportKind = 'services' | 'receipt' | 'diagnosis' | 'photo' | 'checklist' | 'final-work';
 
 export type PriceItem = {
   descricao: string;
@@ -128,11 +128,7 @@ export type FinalWorkReport = {
   anexos:StoredFile[];
 };
 
-export type MaintenanceAuthReport = {
- kind:'maintenance-auth';version:number;id:string;createdAt:string;updatedAt:string;generatedAt:string|null;archivedAt:string|null;
- os:string;dataRelatorio:string;servico:string;endereco:string;numero:string;bairro:string;dataExecucao:string;prazoExecucao:string;largura:string;comprimento:string;interdicao:string;agentes:'SIM'|'NÃO'|'';fotos:StoredFile[];
-};
-export type AnyReport = Report | ReceiptReport | DiagnosisReport | PhotoReport | ChecklistReport | FinalWorkReport | MaintenanceAuthReport;
+export type AnyReport = Report | ReceiptReport | DiagnosisReport | PhotoReport | ChecklistReport | FinalWorkReport;
 
 export type WhyLine = { id:string; pergunta:string; resposta:string };
 export type BudgetLine = { id:string; descricao:string; preco:string; unid:string; quant:string; precoUnit:string };

@@ -1,4 +1,4 @@
-import type { AnyReport, BudgetLine, ChecklistReport, FinalWorkReport, DefectLine, DiagnosisReport, Evidence, InspectionNote, PhotoEntry, PhotoReport, ReceiptReport, Report, ServiceLine, StoredFile, MaintenanceAuthReport, WhyLine } from '../types';
+import type { AnyReport, BudgetLine, ChecklistReport, FinalWorkReport, DefectLine, DiagnosisReport, Evidence, InspectionNote, PhotoEntry, PhotoReport, ReceiptReport, Report, ServiceLine, StoredFile, WhyLine } from '../types';
 import { CHECKLIST_DOCUMENTS, FINAL_WORK_DOCUMENTS } from '../data/options';
 
 export const uid = () => `r_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -167,10 +167,8 @@ export function normalizeReceiptReport(input: Partial<ReceiptReport> | any): Rec
   return r;
 }
 
-export function newMaintenanceAuthReport():MaintenanceAuthReport {const now=new Date().toISOString();return {kind:'maintenance-auth',version:19,id:uid(),createdAt:now,updatedAt:now,generatedAt:null,archivedAt:null,os:'',dataRelatorio:today(),servico:'',endereco:'',numero:'',bairro:'',dataExecucao:'de acordo com autorização da Secretaria de Transporte',prazoExecucao:'',largura:'',comprimento:'',interdicao:'',agentes:'',fotos:[]};}
-export function normalizeMaintenanceAuthReport(input:any):MaintenanceAuthReport {const b=newMaintenanceAuthReport();return {...b,...input,kind:'maintenance-auth',id:input?.id||uid(),dataExecucao:'de acordo com autorização da Secretaria de Transporte',prazoExecucao:String(input?.prazoExecucao??''),fotos:Array.isArray(input?.fotos)?input.fotos.map(normalizeFile):[]};}
 export function normalizeAnyReport(input: any): AnyReport {
-  return input?.kind === 'maintenance-auth' ? normalizeMaintenanceAuthReport(input) : input?.kind === 'final-work' ? normalizeFinalWorkReport(input) : input?.kind === 'checklist' ? normalizeChecklistReport(input) : input?.kind === 'photo' ? normalizePhotoReport(input) : input?.kind === 'diagnosis' ? normalizeDiagnosisReport(input) : input?.kind === 'receipt' ? normalizeReceiptReport(input) : normalizeReport(input);
+  return input?.kind === 'final-work' ? normalizeFinalWorkReport(input) : input?.kind === 'checklist' ? normalizeChecklistReport(input) : input?.kind === 'photo' ? normalizePhotoReport(input) : input?.kind === 'diagnosis' ? normalizeDiagnosisReport(input) : input?.kind === 'receipt' ? normalizeReceiptReport(input) : normalizeReport(input);
 }
 
 function normalizeFile(f: any): StoredFile {
@@ -202,7 +200,7 @@ export function finalWorkFileNameBase(r: FinalWorkReport, when=new Date()){const
 export function checklistFileNameBase(r: ChecklistReport, when=new Date()){const date=when.toLocaleDateString('pt-BR').replaceAll('/','-');return `CHECKLIST LIBERACAO DE OBRA - ${safeName(r.obra.tipoObra)} - ${safeName(r.obra.endereco)} - ${safeName(r.obra.municipio)} - ${date}`;}
 export function photoFileNameBase(r: PhotoReport, when=new Date()){const date=when.toLocaleDateString('pt-BR').replaceAll('/','-');return `RELATORIO FOTOGRAFICO - ${safeName(r.caracterizacao.tipoRelatorio)} - ${safeName(r.obra.endereco)} - ${safeName(r.obra.municipio)} - ${date}`;}
 export function anyFileNameBase(r: AnyReport, when = new Date()) {
-  return r.kind === 'maintenance-auth' ? `AUTORIZACAO MANUTENCAO - OS ${safeName(r.os)} - ${when.toLocaleDateString('pt-BR').replaceAll('/','-')}` : r.kind === 'final-work' ? finalWorkFileNameBase(r,when) : r.kind === 'checklist' ? checklistFileNameBase(r,when) : r.kind === 'photo' ? photoFileNameBase(r,when) : r.kind === 'diagnosis' ? diagnosisFileNameBase(r, when) : r.kind === 'receipt' ? receiptFileNameBase(r, when) : fileNameBase(r, when);
+  return r.kind === 'final-work' ? finalWorkFileNameBase(r,when) : r.kind === 'checklist' ? checklistFileNameBase(r,when) : r.kind === 'photo' ? photoFileNameBase(r,when) : r.kind === 'diagnosis' ? diagnosisFileNameBase(r, when) : r.kind === 'receipt' ? receiptFileNameBase(r, when) : fileNameBase(r, when);
 }
 
 export async function fileToStored(file: File): Promise<StoredFile> {
