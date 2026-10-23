@@ -142,7 +142,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
         `${new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${r.dataRelatorio}T12:00:00`))}.`,
       ),
     ],
-    lineHeight,
+    lineHeight * 2,
     false,
     "right",
   );
@@ -169,6 +169,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   field(
     "Medidas aproximadas: ",
     `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`,
+    0,
   );
   field("Posição da intervenção na via: ", r.posicaoIntervencao);
   field("Empresa responsável pela execução: ", COMPANY);
@@ -185,14 +186,20 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
     "Aproveitamos a oportunidade para apresentar nossos protestos de consideração.",
     lineHeight,
   );
-  if (y + lineHeight > lastBaseline) nextPage();
-  p("JOCELMA GONÇALVES DA SILVA", 0, "right");
-  p("Coordenadora", lineHeight, "right");
-  if (y + lineHeight * 3 > lastBaseline) nextPage();
-  p("Excelentíssimo Senhor", 0, "right");
-  paragraph([bold("SAMUEL DE OLIVEIRA")], 0, false, "right");
-  p("Secretaria Municipal de Manutenção e Serviços Urbanos", 0, "right");
-  p("Prefeitura Municipal de Suzano", 0, "right");
+if (y + lineHeight * 3 > lastBaseline) nextPage();
+
+y += lineHeight * 2;
+
+p("JOCELMA GONÇALVES DA SILVA", 0, "right");
+p("Coordenadora", lineHeight, "right");
+  if (y + lineHeight * 6 > lastBaseline) nextPage();
+
+y += lineHeight * 2;
+
+p("Excelentíssimo Senhor", 0, "left");
+  paragraph([bold("SAMUEL DE OLIVEIRA")], 0, false, "left");
+  p("Secretaria Municipal de Manutenção e Serviços Urbanos", 0, "left");
+  p("Prefeitura Municipal de Suzano", 0, "left");
   for (const photo of r.fotos) {
     const image = await loadImage(photo.data);
     doc.addPage();
