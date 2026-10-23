@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   COMPANY,
-  EXECUTION,
+  POSITIONS,
   REQUESTERS,
   SERVICES,
   decimal,
@@ -64,8 +64,8 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
   const save = () =>
     run(async () => {
       if (!current) return;
-      const r = await storage.put(current);
-      setCurrent(r);
+      await storage.put(current);
+      setCurrent(null);
       setDirty(false);
       await refresh();
       setStatus("Relatório salvo neste navegador.");
@@ -121,7 +121,7 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
     [fotos[index], fotos[index + delta]] = [fotos[index + delta], fotos[index]];
     update({ fotos });
   };
-  const integer = (key: "os" | "numero" | "prazoExecucao", label: string) => (
+  const integer = (key: "os" | "numero", label: string) => (
     <label className="ma-field">
       {label}
       <input
@@ -285,14 +285,6 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
           </>
         ) : (
           <>
-            <div className="ma-actions">
-              <button onClick={() => void save()}>Salvar relatório</button>
-              <button onClick={() => void pdf(current)}>Gerar PDF</button>
-              <button onClick={() => exportFile(current)}>Exportar JSON</button>
-              <span>
-                {dirty ? "Alterações não salvas" : "Sem alterações pendentes"}
-              </span>
-            </div>
             <section>
               <h2>1. Dados da solicitação</h2>
               <div className="ma-grid">
@@ -327,27 +319,23 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
                     ))}
                   </select>
                 </label>
-                <label className="ma-field ma-wide">
-                  Data de execução
-                  <textarea value={EXECUTION} readOnly rows={2} />
-                </label>
-                {integer("prazoExecucao", "Prazo de execução (horas)")}
                 <label className="ma-field">
-                  Interdição da via
+                  Posição da intervenção na via
                   <select
-                    value={current.interdicao}
+                    value={current.posicaoIntervencao}
                     onChange={(e) =>
                       update({
-                        interdicao: e.target
-                          .value as MaintenanceReport["interdicao"],
+                        posicaoIntervencao: e.target
+                          .value as MaintenanceReport["posicaoIntervencao"],
                       })
                     }
                   >
                     <option value="" disabled>
                       Selecione
                     </option>
-                    <option>Meia pista</option>
-                    <option>Total da pista</option>
+                    {POSITIONS.map((position) => (
+                      <option key={position}>{position}</option>
+                    ))}
                   </select>
                 </label>
               </div>
@@ -463,6 +451,13 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
                 ))}
               </div>
             </section>
+            <div className="ma-actions ma-form-actions">
+              <button onClick={() => void save()}>Salvar e voltar</button>
+              <button onClick={() => void pdf(current)}>Gerar PDF</button>
+              <span>
+                {dirty ? "Alterações não salvas" : "Sem alterações pendentes"}
+              </span>
+            </div>
           </>
         )}
       </fieldset>

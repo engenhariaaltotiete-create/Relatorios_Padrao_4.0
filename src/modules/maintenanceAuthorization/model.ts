@@ -3,8 +3,7 @@ export const SERVICES = [
   "Manutenção de esgoto",
   "Reposição de pavimento",
 ] as const;
-export const EXECUTION =
-  "de acordo com autorização da Secretaria de Transporte";
+export const POSITIONS = ["Terço", "Eixo", "Passeio"] as const;
 export const COMPANY =
   "Zigurate Construção Ltda., CNPJ.: 32.836.259/0001-63, eng. º residente Henrique José da Rocha – (11) 9300-5894.";
 export const REQUESTERS = {
@@ -18,7 +17,7 @@ export const REQUESTERS = {
 export type Photo = { id: string; name: string; data: string };
 export type MaintenanceReport = {
   kind: "maintenance-auth";
-  version: 1;
+  version: 2;
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -30,10 +29,9 @@ export type MaintenanceReport = {
   numero: string;
   bairro: string;
   servico: (typeof SERVICES)[number] | "";
-  prazoExecucao: string;
   largura: string;
   comprimento: string;
-  interdicao: "Meia pista" | "Total da pista" | "";
+  posicaoIntervencao: (typeof POSITIONS)[number] | "";
   fotos: Photo[];
 };
 export function localDate() {
@@ -44,7 +42,7 @@ export function newReport(): MaintenanceReport {
   const now = new Date().toISOString();
   return {
     kind: "maintenance-auth",
-    version: 1,
+    version: 2,
     id: crypto.randomUUID(),
     createdAt: now,
     updatedAt: now,
@@ -56,10 +54,9 @@ export function newReport(): MaintenanceReport {
     numero: "",
     bairro: "",
     servico: SERVICES[0],
-    prazoExecucao: "",
     largura: "",
     comprimento: "",
-    interdicao: "Meia pista",
+    posicaoIntervencao: "",
     fotos: [],
   };
 }
@@ -83,14 +80,19 @@ export function parseReport(input: unknown): MaintenanceReport {
     throw Error(
       "Este JSON não pertence ao módulo de autorização de manutenção.",
     );
-  if (![1, 19].includes(Number(v.version)))
+  if (![1, 2, 19].includes(Number(v.version)))
     throw Error("Versão de JSON não suportada.");
   if (
     (v.servico !== "" &&
       !SERVICES.includes(v.servico as (typeof SERVICES)[number])) ||
-    !["", "Meia pista", "Total da pista"].includes(String(v.interdicao))
+    (v.posicaoIntervencao !== undefined &&
+      v.posicaoIntervencao !== "" &&
+      !POSITIONS.includes(
+        v.posicaoIntervencao as (typeof POSITIONS)[number],
+      )) ||
+    (Number(v.version) === 2 && typeof v.posicaoIntervencao !== "string")
   )
-    throw Error("Serviço ou interdição inválidos.");
+    throw Error("Serviço ou posição da intervenção inválidos.");
   if (
     typeof v.id !== "string" ||
     !v.id ||
@@ -105,14 +107,13 @@ export function parseReport(input: unknown): MaintenanceReport {
     "endereco",
     "numero",
     "bairro",
-    "prazoExecucao",
     "largura",
     "comprimento",
   ] as const) {
     if (typeof v[key] !== "string") throw Error(`Campo inválido: ${key}`);
     result[key] = v[key];
   }
-  for (const key of ["os", "numero", "prazoExecucao"] as const)
+  for (const key of ["os", "numero"] as const)
     if (result[key] && !/^\d+$/.test(result[key]))
       throw Error(`Campo inteiro inválido: ${key}`);
   for (const key of ["largura", "comprimento"] as const)
@@ -143,7 +144,8 @@ export function parseReport(input: unknown): MaintenanceReport {
     archivedAt: typeof v.archivedAt === "string" ? v.archivedAt : null,
     generatedAt: typeof v.generatedAt === "string" ? v.generatedAt : null,
     servico: v.servico as MaintenanceReport["servico"],
-    interdicao: v.interdicao as MaintenanceReport["interdicao"],
+    posicaoIntervencao: (v.posicaoIntervencao ??
+      "") as MaintenanceReport["posicaoIntervencao"],
     fotos: photos,
   };
 }
@@ -153,16 +155,13 @@ export function validate(r: MaintenanceReport) {
     ["Endereço", r.endereco],
     ["Número", r.numero],
     ["Bairro", r.bairro],
-    ["Prazo de execução", r.prazoExecucao],
     ["Largura", r.largura],
     ["Comprimento", r.comprimento],
   ])
     if (!value.trim()) throw Error(`Preencha ${label}.`);
-  if (!r.servico || !r.interdicao)
-    throw Error("Selecione o serviço e a interdição.");
+  if (!r.servico || !r.posicaoIntervencao)
+    throw Error("Selecione o serviço e a posição da intervenção.");
   parseReport(r);
-  if (Number(r.prazoExecucao) <= 0)
-    throw Error("O prazo deve ser maior que zero.");
 }
 export function fileName(r: MaintenanceReport) {
   return `AUTORIZACAO-MANUTENCAO-OS-${r.os || "rascunho"}-${r.dataRelatorio}`;

@@ -13,7 +13,7 @@ Implementação independente sobre o ZIP fornecido pelo usuário. Fora desta pas
 
 ## Dados anteriores
 
-Importa JSON individual do formato anterior (`kind: maintenance-auth`, versão 19), além do próprio formato versão 1. Campos antigos de agentes de trânsito e data de execução editável são descartados. Preserva data original, identificadores, ordem das fotos e arquivamento. Rascunhos com seleções vazias podem ser importados; PDF exige preenchimento.
+Importa JSON individual do formato anterior (`kind: maintenance-auth`, versão 19), além do formato anterior versão 1 e do atual versão 2. Campos antigos de agentes de trânsito, data de execução, prazo e interdição são descartados. A posição da intervenção (Terço, Eixo ou Passeio) permanece vazia nos registros antigos até seleção explícita; não é deduzida da antiga interdição. Preserva data original, identificadores, ordem das fotos e arquivamento. Rascunhos com seleções vazias podem ser importados; PDF exige preenchimento.
 
 O botão **Recuperar registros da versão anterior** lê exclusivamente registros `maintenance-auth` do banco legado, quando existente, e copia os que não existem neste módulo. Não altera nem remove registros originais. A recuperação depende de o mesmo navegador/origem ainda possuir esses dados. Não faz migração automática dos demais relatórios. Formatos de imagem aceitos: JPEG, PNG e WebP; arquivos incompatíveis geram mensagem e permanecem intactos na origem.
 
@@ -33,3 +33,7 @@ python3 src/modules/maintenanceAuthorization/tests/check-pdf.py
 O segundo comando requer PyMuPDF. Artefatos vão para `/tmp/maintenance-authorization-tests` (ou `MA_TEST_ARTIFACTS`). O navegador deve ser descartável: o teste interage com a interface, usa registros sintéticos e limpa seus próprios registros no final. Não use perfil com alterações não salvas.
 
 Valida: sete cards, entrada/retorno, solicitante automático, data somente leitura, decimais, rejeição de JSON inválido, compatibilidade v19 e rascunhos, CRUD e arquivamento, imagens e JSON, ações das fotos, largura móvel e abertura dos seis painéis originais. Gera PDFs com 0/1/2/5 fotografias e endereço de 7000 caracteres; verifica A4, margens, cabeçalho/rodapé, imagem proporcional por página, numeração e textos exigidos. Os seis outros painéis são um teste de navegação, não uma suíte completa dos PDFs desses módulos.
+
+## Formatação e ações atuais
+
+O formulário termina com Salvar e voltar (salva e retorna à listagem) e Gerar PDF. A exportação JSON fica na listagem. Não há data de execução, prazo ou interdição. Logotipo à direita em todas as páginas; título fotográfico centralizado. Corpo 11,5 pt, entrelinha 1,5 e uma linha adicional entre os blocos combinados; data, assinatura e destinatário à direita. SAMUEL DE OLIVEIRA em maiúsculas, negrito e 11,5 pt. Numeração em 10 pt, alinhada a 15 mm da direita e com linha de base a 15 mm da borda inferior; rodapé institucional preservado com espaço lateral para a numeração.

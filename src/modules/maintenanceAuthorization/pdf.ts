@@ -1,8 +1,8 @@
 import { jsPDF } from "jspdf";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import logoUrl from "./logo.jpg";
 import {
   COMPANY,
-  EXECUTION,
   REQUESTERS,
   decimal,
   validate,
@@ -38,16 +38,30 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
     doc.setFont("helvetica", b ? "bold" : "normal");
     doc.setFontSize(size);
   };
+  // Use exact standard-font metrics; jsPDF's rounded widths can shift right-aligned text past the margin.
+  const metrics = await PDFDocument.create();
+  const regularMetrics = await metrics.embedFont(StandardFonts.Helvetica);
+  const boldMetrics = await metrics.embedFont(StandardFonts.HelveticaBold);
+  const textWidth = (text: string) =>
+    (Array.from(text).reduce(
+      (width, char) =>
+        width +
+        (doc.getFont().fontStyle === "bold"
+          ? boldMetrics
+          : regularMetrics
+        ).widthOfTextAtSize(char, doc.getFontSize()),
+      0,
+    ) *
+      25.4) /
+    72;
   function header(photo = false) {
-    doc.addImage(logo, "JPEG", margin, 3, logoWidth, logoHeight);
+    doc.addImage(logo, "JPEG", 195 - logoWidth, 3, logoWidth, logoHeight);
     if (photo) {
       font(true, 12);
-      doc.text(
-        `Relatório Fotográfico - OS${r.os}`,
-        margin + logoWidth + 8,
-        17,
-        { maxWidth: width - logoWidth - 8 },
-      );
+      doc.text(`Relatório Fotográfico - OS${r.os}`, 105, 17, {
+        align: "center",
+        maxWidth: width - 2 * (logoWidth + 8),
+      });
     }
   }
   header();
@@ -64,19 +78,19 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
       font(run.bold);
       for (const word of run.text.split(/(\s+)/).filter(Boolean)) {
         if (/^\s+$/.test(word)) {
-          if (used > 0 && used + doc.getTextWidth(" ") <= width) {
+          if (used > 0 && used + textWidth(" ") <= width) {
             result.at(-1)!.push({ ...run, text: " " });
-            used += doc.getTextWidth(" ");
+            used += textWidth(" ");
           }
           continue;
         }
-        if (used > 0 && used + doc.getTextWidth(word) > width) {
+        if (used > 0 && used + textWidth(word) > width) {
           result.push([]);
           used = 0;
         }
         let part = "";
         for (const char of word) {
-          const w = doc.getTextWidth(char);
+          const w = textWidth(char);
           if (used + w > width) {
             if (part) result.at(-1)!.push({ ...run, text: part });
             result.push([]);
@@ -91,33 +105,56 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
     }
     return result;
   }
-  function paragraph(runs: Run[], gap = 1.6, keep = false) {
+  function paragraph(
+    runs: Run[],
+    gap = 0,
+    keep = false,
+    align: "left" | "right" = "left",
+  ) {
     const wrapped = lines(runs);
     if (keep && y + (wrapped.length - 1) * lineHeight > lastBaseline)
       nextPage();
     for (const line of wrapped) {
       if (y > lastBaseline) nextPage();
-      let x = margin;
+      const lineWidth = line.reduce((sum, run) => {
+        font(run.bold);
+        return sum + textWidth(run.text);
+      }, 0);
+      let x = align === "right" ? 195 - lineWidth : margin;
       for (const run of line) {
         font(run.bold);
         doc.text(run.text, x, y);
-        x += doc.getTextWidth(run.text);
+        x += textWidth(run.text);
       }
       y += lineHeight;
     }
     y += gap;
   }
-  const p = (s: string, gap = 1.6) => paragraph([normal(s)], gap);
-  const field = (label: string, value: string, gap = 1.6) =>
+  const p = (text: string, gap = 0, align: "left" | "right" = "left") =>
+    paragraph([normal(text)], gap, false, align);
+  const field = (label: string, value: string, gap = lineHeight) =>
     paragraph([normal(label), bold(value)], gap);
-  field("OLMS – OS ", r.os, 2.5);
-  field(
-    "Suzano, ",
-    `${new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${r.dataRelatorio}T12:00:00`))}.`,
-    3,
+  paragraph([bold(`OLMS – OS ${r.os}`)], lineHeight);
+  paragraph(
+    [
+      normal("Suzano, "),
+      bold(
+        `${new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${r.dataRelatorio}T12:00:00`))}.`,
+      ),
+    ],
+    lineHeight,
+    false,
+    "right",
   );
-  p("Ref.: Autorização para execução de serviço de manutenção emergencial", 3);
-  p("Senhor secretário,", 2.5);
+  paragraph(
+    [
+      bold(
+        "Ref.: Autorização para execução de serviço de manutenção emergencial",
+      ),
+    ],
+    lineHeight,
+  );
+  p("Senhor secretário,", lineHeight);
   paragraph([
     normal("Solicitamos autorização para execução da "),
     bold(r.servico.charAt(0).toLocaleLowerCase("pt-BR") + r.servico.slice(1)),
@@ -125,49 +162,37 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   ]);
   paragraph([
     normal("Endereço: "),
-    bold(displayText(r.endereco)),
-    normal(", "),
-    bold(r.numero),
-    normal(", "),
-    bold(displayText(r.bairro)),
-    normal(" – SUZANO/SP"),
+    bold(
+      `${displayText(r.endereco)}, ${r.numero}, ${displayText(r.bairro)} – SUZANO/SP`,
+    ),
   ]);
-  field("Data: ", EXECUTION);
-  paragraph([
-    normal("Prazo aproximado para execução: "),
-    bold(r.prazoExecucao),
-    normal(" horas"),
-  ]);
-  paragraph([
-    normal("Medidas aproximadas: "),
-    bold(decimal(r.largura)),
-    normal("m x "),
-    bold(decimal(r.comprimento)),
-    normal("m"),
-  ]);
-  field("Interdição da via: ", r.interdicao);
+  field(
+    "Medidas aproximadas: ",
+    `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`,
+  );
+  field("Posição da intervenção na via: ", r.posicaoIntervencao);
   field("Empresa responsável pela execução: ", COMPANY);
-  field("Solicitante: ", r.servico ? REQUESTERS[r.servico] : "", lineHeight);
+  field("Solicitante: ", r.servico ? REQUESTERS[r.servico] : "");
   paragraph(
     [
       bold(
         "Abaixo, segue o Relatório Fotográfico, que apresenta a situação do local antes da execução do serviço.",
       ),
     ],
-    3,
+    lineHeight,
   );
   p(
     "Aproveitamos a oportunidade para apresentar nossos protestos de consideração.",
-    4,
+    lineHeight,
   );
-  if (y + lineHeight * 2 + 3 > lastBaseline) nextPage();
-  p("JOCELMA GONÇALVES DA SILVA", 0);
-  p("Coordenadora", 3);
+  if (y + lineHeight > lastBaseline) nextPage();
+  p("JOCELMA GONÇALVES DA SILVA", 0, "right");
+  p("Coordenadora", lineHeight, "right");
   if (y + lineHeight * 3 > lastBaseline) nextPage();
-  paragraph([normal("Excelentíssimo Senhor")], 0, true);
-  p("Samuel de Oliveira", 0);
-  p("Secretaria Municipal de Manutenção e Serviços Urbanos", 0);
-  p("Prefeitura Municipal de Suzano", 0);
+  p("Excelentíssimo Senhor", 0, "right");
+  paragraph([bold("SAMUEL DE OLIVEIRA")], 0, false, "right");
+  p("Secretaria Municipal de Manutenção e Serviços Urbanos", 0, "right");
+  p("Prefeitura Municipal de Suzano", 0, "right");
   for (const photo of r.fotos) {
     const image = await loadImage(photo.data);
     doc.addPage();
@@ -203,9 +228,9 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
       "Rua Benjamin Constant, 1980 – Centro – CEP 08674-178 – Suzano – SP – Tel. 55 (11) 4746-5300",
       "www.sabesp.com.br",
     ].entries())
-      doc.text(text, margin, 275 + i * 3.8, { maxWidth: width });
-    font(false, 8);
-    doc.text(`${page}/${total}`, 195, 293, { align: "right" });
+      doc.text(text, margin, 275 + i * 3.8, { maxWidth: width - 14 });
+    font(false, 10);
+    doc.text(`${page}/${total}`, 195, 282, { align: "right" });
   }
   return doc.output("blob");
 }

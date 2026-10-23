@@ -84,14 +84,39 @@ assert(
   ),
   "requester update",
 );
+assert(
+  await ev(
+    "JSON.stringify([...document.querySelectorAll('.ma-form-actions button')].map(b=>b.textContent))===JSON.stringify(['Salvar e voltar','Gerar PDF'])",
+  ),
+  "two final actions",
+);
+assert(
+  await ev(
+    "document.querySelector('.ma-form-actions').previousElementSibling.tagName==='SECTION'",
+  ),
+  "actions after photos",
+);
+assert(
+  await ev(
+    "!/(Data de execução|Prazo de execução|Interdição da via|Exportar JSON)/.test(document.querySelector('.ma-module').textContent)",
+  ),
+  "removed fields/actions",
+);
+assert(
+  await ev(
+    "JSON.stringify([...document.querySelectorAll('.ma-grid select')[1].options].map(o=>o.value))===JSON.stringify(['','Terço','Eixo','Passeio'])",
+  ),
+  "position options",
+);
 // Isolated functional tests exercise storage, legacy compatibility, validation, image conversion and real PDF output.
 const results = await ev(`(async()=>{
  const m=await import('/src/modules/maintenanceAuthorization/model.ts'),{storage}=await import('/src/modules/maintenanceAuthorization/storage.ts'),{generatePdf}=await import('/src/modules/maintenanceAuthorization/pdf.ts'),{readPhoto}=await import('/src/modules/maintenanceAuthorization/images.ts');
  const assert=(ok,msg)=>{if(!ok)throw Error(msg)};
- const r={...m.newReport(),os:'7654321',endereco:'Rua Benjamin Constant',numero:'1980',bairro:'Centro',prazoExecucao:'8',largura:'1,25',comprimento:'2,50',dataRelatorio:'2026-10-21'};
+ const r={...m.newReport(),os:'7654321',endereco:'Rua Benjamin Constant',numero:'1980',bairro:'Centro',posicaoIntervencao:'Terço',largura:'1,25',comprimento:'2,50',dataRelatorio:'2026-10-21'};
  assert(m.decimal('1,2')==='1,20','decimal comma');assert(m.decimal('2.5')==='2,50','decimal dot');
- for(const bad of [{...r,kind:'photo'},{...r,dataRelatorio:'2026-02-30'},{...r,os:'1x'},{...r,fotos:[{data:'data:text/html;base64,AAAA'}]},{...r,version:999}]){let rejected=false;try{m.parseReport(bad)}catch{rejected=true}assert(rejected,'invalid JSON accepted')}
- const legacy=m.parseReport({...r,version:19,agentes:'SIM',dataExecucao:'antiga'});assert(!('agentes'in legacy)&&!('dataExecucao'in legacy),'legacy sanitization');
+ for(const bad of [{...r,kind:'photo'},{...r,dataRelatorio:'2026-02-30'},{...r,os:'1x'},{...r,fotos:[{data:'data:text/html;base64,AAAA'}]},{...r,version:999},{...r,posicaoIntervencao:'Meia pista'}]){let rejected=false;try{m.parseReport(bad)}catch{rejected=true}assert(rejected,'invalid JSON accepted')}
+ for(const version of [1,19]){const {posicaoIntervencao,...old}=r;const legacy=m.parseReport({...old,version,interdicao:'Total da pista',prazoExecucao:'8',agentes:'SIM',dataExecucao:'antiga'});assert(legacy.posicaoIntervencao===''&&legacy.version===2&&!('interdicao'in legacy)&&!('prazoExecucao'in legacy)&&!('dataExecucao'in legacy),'legacy migration');assert(legacy.dataRelatorio===r.dataRelatorio,'legacy original date');let blocked=false;try{m.validate(legacy)}catch{blocked=true}assert(blocked,'legacy position must be selected')}
+ for(const posicaoIntervencao of m.POSITIONS)m.validate({...r,posicaoIntervencao});
  assert(m.parseReport({...r,version:19,servico:'',interdicao:''}).servico==='','legacy draft');
  const date=r.dataRelatorio;await storage.put(r);let all=await storage.all();assert(all.find(x=>x.id===r.id)?.dataRelatorio===date,'save/date');
  await storage.put({...r,archivedAt:new Date().toISOString()});assert((await storage.all()).find(x=>x.id===r.id)?.archivedAt,'archive');await storage.put({...r,archivedAt:null});assert(!(await storage.all()).find(x=>x.id===r.id)?.archivedAt,'unarchive');
@@ -150,10 +175,24 @@ writeFileSync(
   `${artifacts}/maintenance-mobile.png`,
   Buffer.from(shot.result.data, "base64"),
 );
-await ev(
-  "window.confirm=()=>true;document.querySelector('.ma-heading button').click()",
+const beforeSave = await ev(
+  "(async()=>{const {storage}=await import('/src/modules/maintenanceAuthorization/storage.ts');return (await storage.all()).map(r=>r.id);})()",
 );
-await pause();
+await ev("document.querySelector('.ma-form-actions button').click()");
+await waitFor(
+  "!document.querySelector('.ma-form-actions')&&!!document.querySelector('.ma-module')",
+);
+const savedDraft = await ev(
+  "(async()=>{const {storage}=await import('/src/modules/maintenanceAuthorization/storage.ts');return await storage.all();})()",
+);
+const created = savedDraft.filter((r) => !beforeSave.includes(r.id));
+assert(
+  created.length === 1 && created[0].fotos.length === 1,
+  "save and back persists photos",
+);
+await ev(
+  `(async()=>{const {storage}=await import('/src/modules/maintenanceAuthorization/storage.ts');await storage.remove(${JSON.stringify(created[0].id)});})()`,
+);
 await ev("document.querySelector('.ma-heading button').click()");
 await pause();
 assert(
