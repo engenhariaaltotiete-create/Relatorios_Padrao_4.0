@@ -14,7 +14,7 @@ export const PDF_LAYOUT = {
   width: 210,
   height: 297,
   margin: 15,
-  top: 30,
+  top: 40,
   bottom: 267,
   fontSize: 11.5,
   lineHeight: ((11.5 * 25.4) / 72) * 1.5,
@@ -192,7 +192,7 @@ if (y + lineHeight * 3 > lastBaseline) nextPage();
 
 y += lineHeight * 2;
 
-p("JOCELMA GONÇALVES DA SILVA", 0, "right");
+paragraph([bold("JOCELMA GONÇALVES DA SILVA")], 0, false, "right");
 p("Coordenadora", lineHeight, "right");
   if (y + lineHeight * 6 > lastBaseline) nextPage();
 
