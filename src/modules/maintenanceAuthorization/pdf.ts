@@ -57,10 +57,10 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
       25.4) /
     72;
   function header(photo = false) {
-    doc.addImage(logo, "JPEG", 195 - logoWidth, 10, logoWidth, logoHeight);
+    doc.addImage(logo, "JPEG", 195 - logoWidth, 12, logoWidth, logoHeight);
     if (photo) {
       font(true, 12);
-      doc.text(`Relatório Fotográfico - OS ${r.os}`, 105, 17, {
+      doc.text(`Relatório Fotográfico - OS ${r.os}`, 105, 25, {
         align: "center",
         maxWidth: width - 2 * (logoWidth + 8),
       });
