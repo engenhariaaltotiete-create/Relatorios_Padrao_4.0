@@ -22,7 +22,48 @@ function ensure(d:jsPDF,r:PhotoReport,l:string,y:number,n=15){if(y+n<=BOT)return
 function table(d:jsPDF,r:PhotoReport,l:string,rows:[string,string][],y:number){for(const[a,b]of rows){d.setFontSize(6.5);d.setFont('helvetica','bold');const ll=wrap(d,a,58);d.setFont('helvetica','normal');const vl=wrap(d,b||'-',W-2*M-66);const lines=Math.max(ll.length,vl.length);const h=Math.max(5,lines*LINE_H+PAD_Y*2);y=ensure(d,r,l,y,h);d.setDrawColor(BORDER[0],BORDER[1],BORDER[2]);d.setLineWidth(.1);d.setFillColor(LIGHT[0],LIGHT[1],LIGHT[2]);d.rect(M,y,62,h,'FD');d.setFillColor(255,255,255);d.rect(M+62,y,W-2*M-62,h,'FD');d.setFont('helvetica','bold');d.text(ll,M+2,y+PAD_Y+2.2,{maxWidth:58});d.setFont('helvetica','normal');d.text(vl,M+64,y+PAD_Y+2.2,{maxWidth:W-2*M-66});y+=h}return y+2}
 function para(d:jsPDF,r:PhotoReport,l:string,t:string,y:number){const width=W-2*M-4;d.setFont('helvetica','normal');d.setFontSize(7.2);const lines=wrap(d,t,width),h=Math.max(7,lines.length*LINE_H+PAD_Y*2);y=ensure(d,r,l,y,h);d.setDrawColor(BORDER[0],BORDER[1],BORDER[2]);d.rect(M,y,W-2*M,h);d.text(String(t||'-'),M+2,y+PAD_Y+2.4,{maxWidth:width,align:lines.length>1?'justify':'left'});return y+h+3}
 function size(url:string):Promise<{width:number;height:number}>{return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res({width:i.naturalWidth,height:i.naturalHeight});i.onerror=rej;i.src=url})}
-async function fit(d:jsPDF,url:string,x:number,y:number,w:number,h:number){const s=await size(url),k=Math.min(w/s.width,h/s.height),dw=s.width*k,dh=s.height*k;d.addImage(url,url.startsWith('data:image/png')?'PNG':'JPEG',x+(w-dw)/2,y+(h-dh)/2,dw,dh,undefined,'FAST')}
+async function fit(
+  d: jsPDF,
+  url: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+) {
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Falha ao carregar a imagem.'));
+    img.src = url;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Não foi possível processar a imagem.');
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0);
+
+  const normalized = canvas.toDataURL('image/jpeg', 0.92);
+  const scale = Math.min(w / canvas.width, h / canvas.height);
+  const dw = canvas.width * scale;
+  const dh = canvas.height * scale;
+
+  d.addImage(
+    normalized,
+    'JPEG',
+    x + (w - dw) / 2,
+    y + (h - dh) / 2,
+    dw,
+    dh,
+    undefined,
+    'FAST'
+  );
+}
 async function tiff(f:StoredFile){const bytes=dataUrlToUint8(f.data),buf=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),ifds=UTIF.decode(buf),out:string[]=[];for(const ifd of ifds){UTIF.decodeImage(buf,ifd);const rgba=UTIF.toRGBA8(ifd),c=document.createElement('canvas');c.width=ifd.width;c.height=ifd.height;const ctx=c.getContext('2d');if(!ctx)continue;ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba),ifd.width,ifd.height),0,0);out.push(c.toDataURL('image/jpeg',.92))}return out}
 function dateLine(municipio:string,date:string){const dt=date?new Date(`${date}T12:00:00`):new Date();const day=dt.getDate(),month=dt.toLocaleDateString('pt-BR',{month:'long'}),year=dt.getFullYear();return `${municipio||''}, ${day} de ${month} de ${year}`}
 function signature(d:jsPDF,r:PhotoReport,l:string,y:number){y=ensure(d,r,l,y,36);const dateY=y+7;d.setFont('helvetica','normal');d.setFontSize(7.5);d.setTextColor(DARK[0],DARK[1],DARK[2]);d.text(dateLine(r.obra.municipio,r.responsavel.data),W-M,dateY,{align:'right'});const sigY=dateY+24;d.setFont('helvetica','bold');d.setFontSize(9);d.text(r.responsavel.elaboradoPor||'-',M,sigY);d.setFont('helvetica','normal');d.setFontSize(7.5);d.text(r.responsavel.cargo||'-',M,sigY+4.5);return sigY+8}
