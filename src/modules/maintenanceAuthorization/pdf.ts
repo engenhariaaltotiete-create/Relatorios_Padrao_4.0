@@ -5,6 +5,7 @@ import {
   COMPANY,
   REQUESTERS,
   decimal,
+  pdfFileName,
   validate,
   type MaintenanceReport,
 } from "./model";
@@ -26,6 +27,7 @@ const bold = (text: string): Run => ({ text, bold: true });
 export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   validate(r);
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  doc.setProperties({ title: pdfFileName(r) });
   const logo = await loadImage(logoUrl);
   const logoHeight = 23,
     logoWidth = (logoHeight * logo.naturalWidth) / logo.naturalHeight;

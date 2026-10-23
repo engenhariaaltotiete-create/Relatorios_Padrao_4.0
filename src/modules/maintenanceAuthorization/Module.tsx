@@ -6,6 +6,7 @@ import {
   SERVICES,
   decimal,
   fileName,
+  pdfFileName,
   newReport,
   parseReport,
   type MaintenanceReport,
@@ -13,6 +14,7 @@ import {
 import { legacyReports, storage } from "./storage";
 import { download, readPhoto } from "./images";
 import { generatePdf } from "./pdf";
+import { PdfDialog, type GeneratedPdf } from "./PdfDialog";
 import "./styles.css";
 export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
   const [reports, setReports] = useState<MaintenanceReport[]>([]),
@@ -20,7 +22,8 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
     [query, setQuery] = useState(""),
     [status, setStatus] = useState(""),
     [busy, setBusy] = useState(false),
-    [dirty, setDirty] = useState(false);
+    [dirty, setDirty] = useState(false),
+    [generatedPdf, setGeneratedPdf] = useState<GeneratedPdf | null>(null);
   const refresh = async () => setReports(await storage.all());
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -73,7 +76,7 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
   const pdf = (r: MaintenanceReport) =>
     run(async () => {
       const blob = await generatePdf(r);
-      download(blob, `${fileName(r)}.pdf`);
+      setGeneratedPdf({ blob, fileName: pdfFileName(r) });
       const saved = await storage.put({
         ...r,
         generatedAt: new Date().toISOString(),
@@ -461,6 +464,9 @@ export function MaintenanceAuthorization({ onBack }: { onBack: () => void }) {
           </>
         )}
       </fieldset>
+      {generatedPdf && (
+        <PdfDialog pdf={generatedPdf} onClose={() => setGeneratedPdf(null)} />
+      )}
       <p className="ma-note">
         Os relatórios ficam neste navegador/dispositivo. Exporte JSON para
         backup ou transferência. PDF: fonte Helvetica como alternativa à Tahoma

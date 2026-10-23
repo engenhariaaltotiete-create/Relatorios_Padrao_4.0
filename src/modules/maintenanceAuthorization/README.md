@@ -37,3 +37,11 @@ Valida: sete cards, entrada/retorno, solicitante automático, data somente leitu
 ## Formatação e ações atuais
 
 O formulário termina com Salvar e voltar (salva e retorna à listagem) e Gerar PDF. A exportação JSON fica na listagem. Não há data de execução, prazo ou interdição. Logotipo à direita em todas as páginas; título fotográfico centralizado. Corpo 11,5 pt, entrelinha 1,5 e uma linha adicional entre os blocos combinados; data, assinatura e destinatário à direita. SAMUEL DE OLIVEIRA em maiúsculas, negrito e 11,5 pt. Numeração em 10 pt, alinhada a 15 mm da direita e com linha de base a 15 mm da borda inferior; rodapé institucional preservado com espaço lateral para a numeração.
+
+## Janela do PDF
+
+Gerar PDF, tanto no formulário quanto na listagem, abre a janela “PDF gerado”, com o texto “O arquivo foi criado diretamente no navegador.” e as ações Baixar PDF, Compartilhar, Abrir e Fechar. Não há download automático. A janela é modal, recebe foco e pode ser fechada por Esc. Abrir exibe o PDF em outra aba. Compartilhar usa um arquivo PDF pela Web Share API quando disponível; cancelamento não gera erro, e navegadores incompatíveis recebem orientação para usar Baixar PDF ou Abrir.
+
+Nome do PDF: `[ENDEREÇO], [NÚMERO], [BAIRRO] – [SERVIÇO] - OS[NÚMERO DA OS].pdf`. Caracteres incompatíveis com nomes de arquivos são substituídos por hífen. O título interno do PDF também usa esse nome. O comportamento de exibição/salvamento da aba aberta depende do visualizador do navegador. O nome dos backups JSON permanece inalterado.
+
+`PdfDialog.tsx` contém a janela e suas ações. Com o servidor e o Chromium de testes iniciados, execute também `node src/modules/maintenanceAuthorization/tests/pdf-dialog.mjs`. Esse teste verifica a geração pela lista e pelo editor, as quatro ações, nome, PDF real no download e na aba aberta, foco, fechamento e largura móvel. Os resultados de compartilhamento são simulados, sem enviar arquivos a terceiros.

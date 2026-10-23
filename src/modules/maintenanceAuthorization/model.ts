@@ -166,3 +166,9 @@ export function validate(r: MaintenanceReport) {
 export function fileName(r: MaintenanceReport) {
   return `AUTORIZACAO-MANUTENCAO-OS-${r.os || "rascunho"}-${r.dataRelatorio}`;
 }
+
+export function pdfFileName(r: MaintenanceReport) {
+  const safe = (value: string) =>
+    value.trim().replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, "-");
+  return `${safe(r.endereco)}, ${safe(r.numero)}, ${safe(r.bairro)} – ${safe(r.servico)} - OS${safe(r.os)}.pdf`;
+}

@@ -7,6 +7,7 @@ root = Path(os.environ.get('MA_TEST_ARTIFACTS', '/tmp/maintenance-authorization-
 mm = 72 / 25.4
 for name in ['0', '1', '2', '5', 'long']:
     document = fitz.open(root / f'maintenance-{name}.pdf')
+    assert document.metadata['title'].endswith('– Manutenção de água - OS7654321.pdf')
     if name != 'long':
         assert len(document) == int(name) + 1
     else:
