@@ -36,7 +36,7 @@ Valida: sete cards, entrada/retorno, solicitante automático, data somente leitu
 
 ## Formatação e ações atuais
 
-O formulário termina com Salvar e voltar (salva e retorna à listagem) e Gerar PDF. A exportação JSON fica na listagem. Não há data de execução, prazo ou interdição. Logotipo à direita em todas as páginas; título fotográfico centralizado. Corpo 11,5 pt, entrelinha 1,5 e uma linha adicional entre os blocos combinados; data, assinatura e destinatário à direita. SAMUEL DE OLIVEIRA em maiúsculas, negrito e 11,5 pt. Numeração em 10 pt, alinhada a 15 mm da direita e com linha de base a 15 mm da borda inferior; rodapé institucional preservado com espaço lateral para a numeração.
+O formulário termina com Salvar e voltar (salva e retorna à listagem) e Gerar PDF. A exportação JSON fica na listagem. Não há data de execução, prazo ou interdição. Logotipo à direita em todas as páginas; título fotográfico centralizado. Corpo 11,5 pt, entrelinha 1,5 e uma linha adicional entre os blocos combinados; data e assinatura à direita; destinatário à esquerda conforme o ajuste mais recente da main. SAMUEL DE OLIVEIRA em maiúsculas, negrito e 11,5 pt. Numeração em 10 pt, alinhada a 15 mm da direita e com linha de base a 15 mm da borda inferior; rodapé institucional preservado com espaço lateral para a numeração.
 
 ## Janela do PDF
 

@@ -58,6 +58,6 @@ for name in ['0', '1', '2', '5', 'long']:
              if b['type'] == 0 for line in b['lines'] for s in line['spans']]
     assert all('Bold' in s['font'] for s in spans if 'Abaixo, segue' in s['text'] or s['text'].startswith('OLMS') or s['text']=='SAMUEL DE OLIVEIRA')
     samuel = next(s for s in spans if s['text']=='SAMUEL DE OLIVEIRA')
-    assert samuel['size']==11.5 and abs(samuel['bbox'][2]-195*mm)<.5
+    assert samuel['size']==11.5 and abs(samuel['bbox'][0]-15*mm)<.5
     print(f'{name}: {len(document)} páginas; A4, margens, conteúdo, fotografias e paginação OK')
 fitz.open(root / 'maintenance-1.pdf')[0].get_pixmap(matrix=fitz.Matrix(1.4, 1.4)).save(root / 'pdf-preview.png')
