@@ -168,6 +168,10 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
       `${displayText(r.endereco)}, ${r.numero}, ${displayText(r.bairro)} – SUZANO/SP`,
     ),
   ]);
+  paragraph([
+  normal("Data: "),
+  bold("de acordo com autorização da Secretaria de Transporte."),
+]);
   field(
     "Medidas aproximadas: ",
     `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`,
