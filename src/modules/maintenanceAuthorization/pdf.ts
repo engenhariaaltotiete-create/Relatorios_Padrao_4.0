@@ -144,7 +144,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
         `${new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${r.dataRelatorio}T12:00:00`))}.`,
       ),
     ],
-    lineHeight * 2,
+    lineHeight,
     false,
     "right",
   );
