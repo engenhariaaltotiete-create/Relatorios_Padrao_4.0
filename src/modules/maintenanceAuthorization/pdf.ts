@@ -302,7 +302,13 @@ p("Excelentíssimo Senhor", 0, "left");
     ].entries())
       doc.text(text, margin, 275 + i * 3.8, { maxWidth: width - 14 });
     font(false, 10);
-    doc.text(`${page}/${total}`, 195, 282, { align: "right" });
+
+const numeracao =
+  page === 1
+    ? "1/1"
+    : `${page - 1}/${total - 1}`;
+
+doc.text(numeracao, 195, 282, { align: "right" });
   }
   return doc.output("blob");
 }
