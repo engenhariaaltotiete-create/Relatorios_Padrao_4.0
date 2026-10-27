@@ -157,7 +157,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   field("Data: ", new Intl.DateTimeFormat("pt-BR").format(trafficDate), 0);
   field("Medidas aproximadas: ", `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`, 0);
   field("Interdição da via: ", r.interdicaoTransito, 0);
-  field("Prazo de execução: ", `${r.prazoTransito} horas`);
+  field("Prazo de execução: ", `${r.prazoTransito} horas`,0);
   const trafficObservation = (r.observacaoTransito ?? "")
     .replace(/[\p{Cf}\u200B-\u200D\uFEFF]/gu, "").trim();
   if (trafficObservation) {
@@ -173,7 +173,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   if (y + lineHeight * 3 > lastBaseline) nextPage();
   y += lineHeight;
   paragraph([bold("JOCELMA GONÇALVES DA SILVA")], 0, false, "right");
-  p("Coordenadora", lineHeight, "right");
+  p("Coordenadora", "right");
   if (y + lineHeight * 6 > lastBaseline) nextPage();
   y += lineHeight;
   p("Excelentíssimo Senhor");
