@@ -256,8 +256,8 @@ if (y + lineHeight * 3 > lastBaseline) nextPage();
 y += lineHeight;
 
 paragraph([bold("JOCELMA GONÇALVES DA SILVA")], 0, false, "right");
-p("Coordenadora", lineHeight, "right");
-  if (y + lineHeight * 6 > lastBaseline) nextPage();
+p("Coordenadora", 0, "right");
+  if (y + lineHeight * 4 > lastBaseline) nextPage();
 
 y += lineHeight;
 
