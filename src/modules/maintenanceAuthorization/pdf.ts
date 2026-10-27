@@ -157,13 +157,13 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   field("Data: ", new Intl.DateTimeFormat("pt-BR").format(trafficDate), 0);
   field("Medidas aproximadas: ", `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`, 0);
   field("Interdição da via: ", r.interdicaoTransito, 0);
-  field("Prazo de execução: ", `${r.prazoTransito} horas`, lineHeight);
+  field("Prazo de execução: ", `${r.prazoTransito} horas`);
   const trafficObservation = (r.observacaoTransito ?? "")
     .replace(/[\p{Cf}\u200B-\u200D\uFEFF]/gu, "").trim();
   if (trafficObservation) {
     trafficObservation.split(/\r?\n/).forEach((line, index) => {
-      if (index === 0) paragraph([normal("Observação: "), bold(line)]);
-      else if (line.trim()) paragraph([bold(line)]);
+      if (index === 0) paragraph([normal("Observação: "), bold(line)], lineHeight);
+      else if (line.trim()) paragraph([bold(line)], lineHeight);
       else y += lineHeight;
     });
   }
@@ -223,8 +223,8 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
     `${decimal(r.largura)}m x ${decimal(r.comprimento)}m`,
     0,
   );
-  field("Posição da intervenção na via: ", r.posicaoIntervencao);
-  field("Asfalto novo: ", r.asfaltoNovo ?? "NÃO");
+  field("Posição da intervenção na via: ", r.posicaoIntervencao,0);
+  field("Asfalto novo: ", r.asfaltoNovo ?? "NÃO",0);
   // Ignora espaços e caracteres invisíveis, inclusive quando são o único conteúdo.
   const observation = (r.observacao ?? "")
     .replace(/[\p{Cf}\u200B-\u200D\uFEFF]/gu, "")
@@ -232,8 +232,8 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   if (observation) {
     const observationLines = observation.split(/\r?\n/);
     observationLines.forEach((line, index) => {
-      if (index === 0) paragraph([normal("Observação: "), bold(line)]);
-      else if (line.trim()) paragraph([bold(line)]);
+      if (index === 0) paragraph([normal("Observação: "), bold(line)],lineHeight);
+      else if (line.trim()) paragraph([bold(line)],lineHeight);
       else y += lineHeight;
     });
   }
