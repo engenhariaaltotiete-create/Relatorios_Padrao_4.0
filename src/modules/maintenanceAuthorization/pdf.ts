@@ -173,7 +173,7 @@ export async function generatePdf(r: MaintenanceReport): Promise<Blob> {
   if (y + lineHeight * 3 > lastBaseline) nextPage();
   y += lineHeight;
   paragraph([bold("JOCELMA GONÇALVES DA SILVA")], 0, false, "right");
-  p("Coordenadora", "right");
+  p("Coordenadora", lineHeight, "right");
   if (y + lineHeight * 6 > lastBaseline) nextPage();
   y += lineHeight;
   p("Excelentíssimo Senhor");
